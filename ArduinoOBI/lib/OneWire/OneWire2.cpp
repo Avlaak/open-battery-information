@@ -161,7 +161,9 @@ sample code bearing this copyright.
 
 void OneWire::begin(uint8_t pin)
 {
-	pinMode(pin, INPUT);
+	// Keep the bus high without requiring an external pull-up on short links.
+	// A 4.7 kOhm external pull-up may still be used for long or noisy wiring.
+	pinMode(pin, INPUT_PULLUP);
 	bitmask = PIN_TO_BITMASK(pin);
 	baseReg = PIN_TO_BASEREG(pin);
 #if ONEWIRE_SEARCH
@@ -185,6 +187,7 @@ uint8_t CRIT_TIMING OneWire::reset(void)
 
 	noInterrupts();
 	DIRECT_MODE_INPUT(reg, mask);
+	DIRECT_WRITE_HIGH(reg, mask); // enable the internal pull-up
 	interrupts();
 	// wait until the wire is high... just in case
 	do {
@@ -200,6 +203,7 @@ uint8_t CRIT_TIMING OneWire::reset(void)
 	delayMicroseconds(750);
 	noInterrupts();
 	DIRECT_MODE_INPUT(reg, mask);	// allow it to float
+	DIRECT_WRITE_HIGH(reg, mask); // keep the internal pull-up enabled
 	delayMicroseconds(70);
 	r = !DIRECT_READ(reg, mask);
 	interrupts();
@@ -250,11 +254,12 @@ uint8_t CRIT_TIMING OneWire::read_bit(void)
 	uint8_t r;
 
 	noInterrupts();
-	DIRECT_MODE_OUTPUT(reg, mask);
 	DIRECT_WRITE_LOW(reg, mask);
+	DIRECT_MODE_OUTPUT(reg, mask);
 	// OBI modification, was 3
 	delayMicroseconds(10);
 	DIRECT_MODE_INPUT(reg, mask);	// let pin float, pull up will raise
+	DIRECT_WRITE_HIGH(reg, mask); // enable the internal pull-up
 	delayMicroseconds(10);
 	r = DIRECT_READ(reg, mask);
 	interrupts();
@@ -278,7 +283,7 @@ void OneWire::write(uint8_t v, uint8_t power /* = 0 */) {
     if ( !power) {
 	noInterrupts();
 	DIRECT_MODE_INPUT(baseReg, bitmask);
-	DIRECT_WRITE_LOW(baseReg, bitmask);
+	DIRECT_WRITE_HIGH(baseReg, bitmask); // enable the internal pull-up
 	interrupts();
     }
 }
@@ -289,7 +294,7 @@ void OneWire::write_bytes(const uint8_t *buf, uint16_t count, bool power /* = 0 
   if (!power) {
     noInterrupts();
     DIRECT_MODE_INPUT(baseReg, bitmask);
-    DIRECT_WRITE_LOW(baseReg, bitmask);
+    DIRECT_WRITE_HIGH(baseReg, bitmask); // enable the internal pull-up
     interrupts();
   }
 }
@@ -336,6 +341,7 @@ void OneWire::depower()
 {
 	noInterrupts();
 	DIRECT_MODE_INPUT(baseReg, bitmask);
+	DIRECT_WRITE_HIGH(baseReg, bitmask); // enable the internal pull-up
 	interrupts();
 }
 

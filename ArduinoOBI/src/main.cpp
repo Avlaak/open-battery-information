@@ -83,9 +83,9 @@ void cmd_and_read(byte *cmd, uint8_t cmd_len, byte *rsp, uint8_t rsp_len) {
 
 void setup() {
 	Serial.begin (9600);
-    // One-wire
+	// Set the output latch before enabling the driver so ENABLE cannot glitch high.
+	digitalWrite(ENABLE_PIN, LOW);
 	pinMode(ENABLE_PIN, OUTPUT);
-	//pinMode(2, OUTPUT);
 }
 
 void send_usb(byte *rsp, byte rsp_len) {

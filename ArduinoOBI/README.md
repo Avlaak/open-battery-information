@@ -9,7 +9,14 @@ browser via the [firmware uploader](https://openbatteryinformation.github.io/fir
 
 ## Hardware
 
-This simple interface can be built using an Ardunio Uno and some external resistors. 
+This simple interface can be built using an Arduino Uno. The firmware enables the microcontroller's
+internal pull-up on the OneWire pin, so the 4.7 kOhm pull-up shown on that line may be omitted for a
+short connection. The Enable pin is actively driven and its output latch is initialized before the
+pin becomes an output, so its 4.7 kOhm pull-up may also be omitted during normal operation.
+
+Software cannot control the pins while the board is resetting or before the firmware starts. The
+internal pull-up is also much weaker than 4.7 kOhm. Keep or add the external 4.7 kOhm pull-ups if a
+defined level is required during reset, or if the OneWire link is long, noisy, or unreliable.
 
 ![screenshot](../docs/images/arduino-obi.png)
 
@@ -82,8 +89,8 @@ the browser, see the [firmware uploader](https://openbatteryinformation.github.i
 
 ## Using an ESP
 
-Tested with an ESP32C3 SuperMini. When building up the circuit, make sure to **connect the pull-up
-resistors to the 3.3V pin** of the ESP board, NOT the 5V. This would fry the GPIOs and destroy the module.
+Tested with an ESP32C3 SuperMini. If external pull-up resistors are fitted, make sure to **connect them
+to the 3.3V pin** of the ESP board, NOT the 5V. Connecting a GPIO pull-up to 5V can destroy the module.
 
 Also, use Pin 0 for the ENABLE pin and Pin 1 for the ONEWIRE. This is geared towards the C3 SuperMini.
 If other GPIOs are more convenient, change the ESP_EN_PIN and ESP_OW_PIN in platformio.ini.
